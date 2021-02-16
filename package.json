@@ -1,0 +1,23 @@
+{
+  "name": "Project27-LoginSystem",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "start": "nodemon app.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "nodemon": "^2.0.7"
+  },
+  "dependencies": {
+    "express": "^4.17.1",
+    "express-handlebars": "^5.2.1",
+    "express-session": "^1.17.1",
+    "mongoose": "^5.11.16",
+    "passport": "^0.4.1",
+    "passport-local": "^1.0.0"
+  }
+}
