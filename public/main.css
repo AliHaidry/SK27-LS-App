@@ -1,0 +1,19 @@
+* {
+margin: 0;
+padding: 0;
+box-sizing: border-box;
+font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+}
+
+body{
+    background-color:#2F4960;
+    background-image:linear-gradient(to bottom right, #2F4960 10%, #102040);
+}
+
+.app
+{
+    display: flex;
+    align-items: center;
+    justify-content:center;
+    min-height: 100vh;
+}
