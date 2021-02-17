@@ -114,6 +114,37 @@ passport.use(new localStrategy(function(user, password, done) {
 }));
 
 
+// logic with function.
+function isLoggedIn(req, res, next){
+    if(req.isAuthenticated()) return next();
+    res.redirect('/login');
+}
+
+// Setup our admin user.
+app.get('/setup', async (req, res) =>{
+    const exists = await User.exists({username:"admin"});
+    
+    if(exists){
+        res.redirect('/login');
+        return;
+    }
+
+    bcrypt.genSalt(10, function (err, user){
+        if(err) return next(err);
+        bcrypt.hash("pass", salt, function (err, hash){
+            if(err) return next(err);
+            const newAdmin = new User({
+                username: "admin",
+                password: hash
+            });
+
+            newAdmin.save();
+
+            res.redirect('/login');
+        })
+    })
+});
+
 
 
 /** Setting up the routes */
