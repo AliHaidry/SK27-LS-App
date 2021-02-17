@@ -9,7 +9,7 @@ Add additional request processing "middleware" at any point within the request h
 const express = require('express');
 
 /**  To store or access session data, simply use the request property req. session , which is (generally) serialized as JSON by the store, so nested objects are typically fine. */
-const session = require('session');
+const session = require('express-session');
 
 /** Handlebars: a lightweight templating system for Node. 
  * Handlebars allows us to avoid repetitive code by compiling the final DOM structure of our site via logic, 
@@ -44,20 +44,82 @@ const bcrypt = require('bcrypt');
 const app = express();
 
 /** Setting the database locally */
-mongoose.connect("mongod://localhost:27017/loginsystem", {
+mongoose.connect("mongodb://localhost:27017/loginsystem", {
    useNewUrlParser: true,
    useUnifiedTopology: true 
 });
 
+
+/** Setting the user schema */
+const UserSchema = new mongoose.Schema({
+    username:{
+        type: String,
+        required: true
+    },
+    password:{
+        type: String,
+        required: true
+    }
+});
+
+const User = mongoose.model('User',UserSchema);
 
 /** Setting the middleware */
 app.engine('hbs', hbs({extname:'.hbs'}));
 app.set('view engine', 'hbs');
 app.use(express.static(__dirname + '/public')); // refers to the public folder.
 app.use(session({
-    secret: 'verygoodsecret',
+    secret: "verygoodsecret",
     resave: false,
     saveUninitialized: true
 }));
 app.use(express.urlencoded({extended: false}));
 app.use(express.json());
+
+/** Setting the Passport.js */
+app.use(passport.initialize());
+app.use(passport.session());
+
+passport.serializeUser(function (user, done) {
+    done(null, user.id)
+});
+
+passport.deserializeUser(function (id, done) {
+    // Setup user model
+    User.findById(id, function (err, user) {
+        done(err, user);
+    })
+});
+
+/** Implementation of the strategy */
+passport.use(new localStrategy(function(user, password, done) {
+    User.findOne({username: user.username}, function (err, user){
+        if(err) {
+            return done(err);
+        }
+        if(!user) {
+            return done(null, false, {message: 'Incorrect Username.'});
+        }
+
+        bcrypt.compare(password, user.password, function (err,res){
+            if(err) {
+                return done(err);
+            }
+            if (res === false) {
+                return done (null, false, {message: 'Incorrect Password.'});
+            }
+            return done(null,user);
+        });
+    });
+}));
+
+/** Setting up the routes */
+// req -> request 
+// res -> response
+app.get('/', (req, res)=>{
+    res.render("index", {title:"Home"});
+});
+
+app.listen(3000, () => {
+    console.log("Listening on port 3000");
+}); 
