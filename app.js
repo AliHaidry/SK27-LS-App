@@ -92,8 +92,8 @@ passport.deserializeUser(function (id, done) {
 });
 
 /** Implementation of the strategy */
-passport.use(new localStrategy(function(user, password, done) {
-    User.findOne({username: user.username}, function (err, user){
+passport.use(new localStrategy(function(username, password, done) {
+    User.findOne({username: username}, function (err, user){
         if(err) {
             return done(err);
         }
@@ -114,11 +114,33 @@ passport.use(new localStrategy(function(user, password, done) {
 }));
 
 
-// logic with function.
+// login logic with function.
 function isLoggedIn(req, res, next){
     if(req.isAuthenticated()) return next();
     res.redirect('/login');
 }
+
+
+// logout logic with function.
+function isLoggedOut(req, res, next){
+    if(!req.isAuthenticated()) return next();
+    res.redirect('/');
+}
+
+
+
+
+app.post('/login', passport.authenticate('local', {
+    successRedirect:'/',
+    failureRedirect:'/login?error=true'
+}));
+
+
+app.get('/logout', function(req, res){
+    req.logout();
+    res.redirect('/');
+});
+
 
 // Setup our admin user.
 app.get('/setup', async (req, res) =>{
@@ -129,10 +151,11 @@ app.get('/setup', async (req, res) =>{
         return;
     }
 
-    bcrypt.genSalt(10, function (err, user){
+    bcrypt.genSalt(10, function (err, salt){
         if(err) return next(err);
         bcrypt.hash("pass", salt, function (err, hash){
             if(err) return next(err);
+
             const newAdmin = new User({
                 username: "admin",
                 password: hash
@@ -150,12 +173,18 @@ app.get('/setup', async (req, res) =>{
 /** Setting up the routes */
 // req -> request 
 // res -> response
-app.get('/', (req, res)=>{
+app.get('/', isLoggedIn,  (req, res)=>{
     res.render("index", {title:"Home"});
 });
 
-app.get('/login', (req, res)=>{
-    res.render("login", {title:"Login"});
+app.get('/login', isLoggedOut, (req, res)=>{
+    const response = {
+        title: "Login",
+        error: req.query.error
+    }
+
+
+    res.render("login", response);
 });
 
 app.listen(3000, () => {
