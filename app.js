@@ -113,11 +113,18 @@ passport.use(new localStrategy(function(user, password, done) {
     });
 }));
 
+
+
+
 /** Setting up the routes */
 // req -> request 
 // res -> response
 app.get('/', (req, res)=>{
     res.render("index", {title:"Home"});
+});
+
+app.get('/login', (req, res)=>{
+    res.render("login", {title:"Login"});
 });
 
 app.listen(3000, () => {
